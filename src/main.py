@@ -11,32 +11,38 @@ from contextlib import chdir
 def main():
     host_system_os = os.name
 
-    print('NOTE: By using this program, you agree to the Mojang EULA.')
     mojang_mani = get_mojang_manifest('https://gist.githubusercontent.com/cliffano/77a982a7503669c3e1acb0a0cf6127e9/raw/a36b1e2f05ed3f1d1bbe9a7cf7fd3cfc7cb7a3a8/minecraft-server-jar-downloads.md') 
-    cursor_index = 0
     help_string = '\n\th -- Display this help screen\n\tj -- Scroll down\n\tk -- Scroll up\
         \n\tls -- list all\n\tq -- Exit program\n'
+    
     global jar_path
     jar_path = None
 
+    cursor_index = 0
     print(list_manifest_versions(mojang_mani, cursor_index, 5))
     print('Please select a version', end='')
+
     while(True):
         user_selection = input(': ')
         match user_selection:
             case 'j' | 'J': 
                 cursor_index = cursor_index + 1 if cursor_index < len(mojang_mani) else cursor_index
                 print(list_manifest_versions(mojang_mani, cursor_index, 5))
+
             case 'k' | 'K': 
                 cursor_index = cursor_index - 1 if cursor_index > 1 else cursor_index
                 print(list_manifest_versions(mojang_mani, cursor_index, 5))
+
             case 'q' | 'Q':
                 print('Exiting. . .')
                 exit()
+
             case 'h' | 'H' | 'help':
                 print(help_string)
+
             case 'ls':
                 print(list_manifest_versions(mojang_mani, 0, len(mojang_mani)))
+
             case _: 
                 if user_selection in mojang_mani:
                     print(f'Selected {user_selection}. Downloading. . .')
@@ -50,15 +56,18 @@ def main():
             with chdir(f'{jar_path.parent}'):
                 with open('eula.txt', 'w') as file:
                     file.write('eula=true')
+
                 match host_system_os:
                     case 'nt':
                         with open('start.bat', 'w') as file:
                             file.write(f'java -Xmx1024M -Xms1024M -jar {jar_path.name} nogui')
+                        os.system(f'.\\{jar_path.name}')
+
                     case _:
                         with open('start.sh', 'w') as file:
                             file.write(f'java -Xmx1024M -Xms1024M -jar {jar_path.name} nogui')
+                        os.system(f'./{jar_path.name}')
 
-                os.system(f'java -Xmx1024M -Xms1024M -jar {jar_path.name} nogui')
         case _:
             print('EULA declined. Terminating. . .')
             exit()
@@ -99,7 +108,6 @@ def list_manifest_versions(mani: dict[str, str], start_index: int, count: int) -
         result = result + keys[key_index] + '\n'
     
     return result
-
         
 # def cache_response(res: requests.Response):
 #     cache = Path('.cache')
